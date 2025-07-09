@@ -29,3 +29,7 @@
 
 ## By:
 - Ujjwal Singh ([github.com/ujLion](https://github.com/ujLion) | [ujnotes.com](https://ujnotes.com))
+
+## To separate data into separate repo:
+1. `git submodule add git@github.com:ujLion/resume.git .\data\ `
+2. `index.html:9` : `<script src="./data/data.json.js">`
