@@ -1,9 +1,9 @@
 # Resume
  HTML Résumé builder
 
-## How the System Works
+## How this System Works
 
-1. **Input**: Users provide their résumé data (such as personal details, education, experience, and skills) through a form or a structured data file (e.g., JSON).
+1. **Input**: Users provide their résumé data (such as personal details, education, experience, and skills) through a structured data file (e.g., JSON).
 2. **Processing**: The system processes the input data and maps it to a predefined HTML template.
 3. **Template Rendering**: The résumé data is dynamically inserted into the template, generating a styled HTML résumé.
 4. **Output**: Users can preview, download, or print the generated HTML résumé.
@@ -26,3 +26,6 @@
 
 ## Todo
 - Additional features may include theme selection, section reordering, and PDF export.
+
+## By:
+- Ujjwal Singh ([github.com/ujLion](https://github.com/ujLion) | [ujnotes.com](https://ujnotes.com))
