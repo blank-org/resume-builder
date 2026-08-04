@@ -27,7 +27,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 items = summary.split(/[.\n]/).map(s => s.trim()).filter(Boolean);
             }
             if (items.length > 0) {
-                el.innerHTML = '<ul class="summary-list">' + items.map(item => `<li>${item}</li>`).join('') + '</ul>';
+                if (items.length === 1) {
+                    el.innerHTML = `<p class="summary-item">${items[0]}</p>`;
+                } else {
+                    el.innerHTML = '<ul class="summary-list">' + items.map(item => `<li>${item}</li>`).join('') + '</ul>';
+                }
             } else {
                 el.textContent = summary;
             }
