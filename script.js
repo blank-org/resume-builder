@@ -74,6 +74,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Section renderers ---
+    function hasRenderableValue(value) {
+        if (value === null || value === undefined) return false;
+        if (typeof value === 'string') return value.trim() !== '';
+        if (Array.isArray(value)) return value.some(item => hasRenderableValue(item));
+        if (typeof value === 'object') {
+            return Object.values(value).some(item => hasRenderableValue(item));
+        }
+        return true;
+    }
+
     function renderSection(key, value, data) {
         // Section title: prettify key only
         let title = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -84,12 +94,16 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `<div class="col-right" id="${key}">`;
             if (Array.isArray(value)) {
                 value.forEach((item, idx) => {
+                    if (!hasRenderableValue(item?.label) && !hasRenderableValue(item?.value)) return;
                     html += `<div class=\"col-right avoid-break\">\n<div class=\"meta\">\n<span class=\"C1\"><strong>${item.label || ''}</strong></span><span class=\"C2\">&nbsp;</span><span class=\"title C3\">${item.value || ''}</span>\n</div>\n</div>`;
                 });
             } else if (typeof value === 'object' && value !== null) {
                 // If persona is an object, render each key-value as a persona item
                 Object.entries(value).forEach(([label, val]) => {
-                    html += `<div class=\"col-right avoid-break\">\n<div class=\"meta\">\n<span class=\"C1\"><strong>${label}</strong></span><span class=\"C2\">&nbsp;</span><span class=\"title C3\">${Array.isArray(val) ? val.join(', ') : val}</span>\n</div>\n</div>`;
+                    if (!hasRenderableValue(val)) return;
+                    const displayValue = Array.isArray(val) ? val.filter(item => hasRenderableValue(item)).join(', ') : val;
+                    if (!hasRenderableValue(displayValue)) return;
+                    html += `<div class=\"col-right avoid-break\">\n<div class=\"meta\">\n<span class=\"C1\"><strong>${label}</strong></span><span class=\"C2\">&nbsp;</span><span class=\"title C3\">${displayValue}</span>\n</div>\n</div>`;
                 });
             }
             html += `</div></div>`;
@@ -111,7 +125,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderGenericObjectFallback(key, obj) {
         let html = '';
         Object.entries(obj).forEach(([label, val]) => {
-            html += `<div class=\"col-right avoid-break\">\n<div class=\"meta\">\n<span class=\"C1\"><strong>${label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</strong></span><span class=\"C2\">&nbsp;</span><span class=\"title C3\">${Array.isArray(val) ? val.join(', ') : val}</span>\n</div>\n</div>`;
+            if (!hasRenderableValue(val)) return;
+            const displayValue = Array.isArray(val) ? val.filter(item => hasRenderableValue(item)).join(', ') : val;
+            if (!hasRenderableValue(displayValue)) return;
+            html += `<div class=\"col-right avoid-break\">\n<div class=\"meta\">\n<span class=\"C1\"><strong>${label.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</strong></span><span class=\"C2\">&nbsp;</span><span class=\"title C3\">${displayValue}</span>\n</div>\n</div>`;
         });
         return html;
     }
