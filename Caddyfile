@@ -1,0 +1,4 @@
+resume-builder.local {
+    tls internal
+    reverse_proxy [::1]:8000
+}
