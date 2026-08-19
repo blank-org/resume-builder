@@ -1,4 +1,5 @@
 /* Theme tokens */
+html.theme-light,
 body.theme-light {
 	--body-bg: #f7f7f8;
 	--body-text: #3c3c3c;
@@ -20,8 +21,10 @@ body.theme-light {
 	--toolbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 	--chip-bg: #e8f0f8;
 	--chip-text: #00599A;
+	color-scheme: light;
 }
 
+html.theme-dark,
 body.theme-dark {
 	--body-bg: #0f172a;
 	--body-text: #e2e8f0;
@@ -43,6 +46,14 @@ body.theme-dark {
 	--toolbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 	--chip-bg: #334155;
 	--chip-text: #93c5fd;
+	color-scheme: dark;
+}
+
+html
+{
+	min-height: 100%;
+	background-color: var(--body-bg);
+	color: var(--body-text);
 }
 
 body
@@ -63,8 +74,18 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
 	padding: 0;
 	border: 0;
 	vertical-align: baseline;
-	background: transparent;
 	font-family: 'Lato', 'Roboto Slab', 'Merriweather', Arial, sans-serif;
+}
+
+div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td
+{
+	background: transparent;
+}
+
+html, body
+{
+	background-color: var(--body-bg);
+	color: var(--body-text);
 }
 
 .preview-page,
@@ -100,16 +121,22 @@ table { border-collapse: collapse; border-spacing: 0; line-height: 1.3; font-siz
 .fr { float: right; }
 
 /* Toolbar */
+.resume-toolbar,
+.preview-page,
+.page-content {
+	box-sizing: border-box;
+}
+
 .resume-toolbar {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 0.75rem;
+	gap: 0.6rem;
 	flex-wrap: wrap;
 	width: 980px;
 	max-width: calc(100% - 2rem);
 	margin: 1rem auto 0.5rem;
-	padding: 0.6rem 1rem;
+	padding: 0.5rem 0.85rem;
 	background: var(--toolbar-bg);
 	border: 1px solid var(--toolbar-border);
 	border-radius: 8px;
@@ -122,14 +149,39 @@ table { border-collapse: collapse; border-spacing: 0; line-height: 1.3; font-siz
 	color: var(--muted-text);
 }
 
-.resume-toolbar select,
-.resume-toolbar button {
+.toolbar-icon {
+	width: 1.05rem;
+	height: 1.05rem;
+	fill: currentColor;
+	flex-shrink: 0;
+	display: block;
+}
+
+.toolbar-control,
+.toolbar-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
 	font-family: inherit;
 	font-size: 0.9em;
-	padding: 0.35rem 0.75rem;
+	padding: 0.35rem 0.7rem;
 	border: 1px solid var(--toolbar-border);
 	border-radius: 6px;
 	background: var(--surface-bg);
+	color: var(--body-text);
+	cursor: pointer;
+}
+
+.toolbar-control .toolbar-icon,
+.toolbar-btn .toolbar-icon {
+	color: var(--icon-color);
+}
+
+.toolbar-control select {
+	font-family: inherit;
+	font-size: 0.9em;
+	border: 0;
+	background: transparent;
 	color: var(--body-text);
 	cursor: pointer;
 }
@@ -144,6 +196,15 @@ table { border-collapse: collapse; border-spacing: 0; line-height: 1.3; font-siz
 	background: var(--accent-primary);
 	color: #ffffff;
 	border-color: var(--accent-primary);
+}
+
+.resume-toolbar button[aria-pressed="true"] .toolbar-icon {
+	color: #ffffff;
+}
+
+body.theme-dark .icon-moon,
+body.theme-light .icon-sun {
+	display: none;
 }
 
 body.preview-mode .resume-toolbar {
@@ -181,6 +242,8 @@ body.preview-mode .resume-toolbar {
 
 @media print
 {
+	html.theme-light,
+	html.theme-dark,
 	body.theme-light,
 	body.theme-dark {
 		--body-bg: #ffffff;
@@ -194,9 +257,10 @@ body.preview-mode .resume-toolbar {
 		--paper-quote: #444444;
 		--paper-border: #9FC3E0;
 		--paper-link: #cd3838;
+		color-scheme: light;
 	}
 
-	body {
+	html, body {
 		background: #ffffff;
 	}
 
@@ -211,16 +275,18 @@ body.preview-mode .resume-toolbar {
 		padding: 8px 36px;
 		border-color: var(--surface-border);
 		background: var(--surface-bg);
+		box-sizing: border-box;
 	}
 	.page-content
 	{
 		text-align: left;
 		margin: 1em auto 1.5em auto;
-		width: 980px;
+		width: 100%;
 		padding: 10px 0;
 		overflow: hidden;
 		font-size: 100%;
 		position: relative;
+		box-sizing: border-box;
 	}
 	.print-no-top-border
 	{
@@ -237,20 +303,23 @@ body.preview-mode .resume-toolbar {
 	.preview-page
 	{
 		width: 980px;
-		margin: 10px auto;
+		max-width: calc(100% - 2rem);
+		margin: 10px auto 2rem;
 		padding: 10px 36px;
 		border: 1px solid var(--surface-border);
 		background: var(--surface-bg);
+		box-sizing: border-box;
 	}
 	.page-content
 	{
 		text-align: left;
 		margin: 1em auto 1.5em auto;
-		width: 980px;
+		width: 100%;
 		padding: 10px 0;
 		overflow: hidden;
 		font-size: 100%;
 		position: relative;
+		box-sizing: border-box;
 	}
 }
 

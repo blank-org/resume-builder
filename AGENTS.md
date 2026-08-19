@@ -29,17 +29,21 @@ To set up the data submodule:
 ## Preview mode
 - Click **Preview** in the toolbar to toggle `body.preview-mode`.
 - Preview hides the toolbar for a clean résumé view.
+- Entering preview pushes a history entry (`history.pushState`). The browser **Back** button (and clicking Preview again) returns to the previous chrome/toolbar state via `popstate`.
 - Preview state is not persisted across reloads.
 - The toolbar is also hidden when printing.
 
 ## Theme (dark / light)
-- Click **Dark** / **Light** in the toolbar to toggle appearance.
-- `body` uses `theme-light` or `theme-dark` plus `data-active-theme`.
+- Click **Dark** / **Light** in the toolbar to toggle appearance. Buttons use inline SVG icons (no Material/Lucide).
+- Both `html` and `body` use `theme-light` or `theme-dark` plus `data-active-theme`, so the full page canvas (not only the paper) changes color.
 - The choice is persisted in `localStorage['resume.activeAppearance']` (`light` or `dark`).
 - There is no automatic `prefers-color-scheme` switching.
-- An inline script in `index.html` applies the saved theme before paint to avoid a flash.
-- CSS variables on `body.theme-light` / `body.theme-dark` control canvas, paper, and accent colors.
+- An inline script in `index.html` (`<head>`) applies the saved theme on `document.documentElement` before CSS to avoid a flash.
+- CSS variables on `html.theme-light` / `html.theme-dark` (and the matching `body` classes) control canvas, paper, and accent colors.
 - `@media print` forces the light palette regardless of the active theme.
+
+## Layout
+- `.preview-page` and `.page-content` use `box-sizing: border-box`. The paper is 980px wide including padding and border so the right edge stays outside the content.
 
 ## Data schema extensions
 Top-level keys that are not rendered as sections: `name`, `location`, `phone`, `email`, `summary`, `intro`, `now`, `section_order`.

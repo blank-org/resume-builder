@@ -14,6 +14,7 @@
     const STORAGE_APPEARANCE = 'resume.activeAppearance';
 
     let activeProfileKey = 'current';
+    let previewHistoryPushed = false;
 
     document.addEventListener('DOMContentLoaded', function () {
         initChrome();
@@ -54,10 +55,16 @@
         const previewToggle = document.getElementById('preview-toggle');
         if (previewToggle) {
             previewToggle.addEventListener('click', function () {
-                const isPreview = document.body.classList.toggle('preview-mode');
-                previewToggle.setAttribute('aria-pressed', isPreview ? 'true' : 'false');
+                const entering = !document.body.classList.contains('preview-mode');
+                setPreviewMode(entering);
             });
         }
+
+        window.addEventListener('popstate', function (event) {
+            const inPreview = !!(event.state && event.state.resumePreview);
+            previewHistoryPushed = inPreview;
+            applyPreviewMode(inPreview);
+        });
 
         const themeToggle = document.getElementById('theme-toggle');
         if (themeToggle) {
@@ -70,6 +77,31 @@
         }
     }
 
+    function applyPreviewMode(on) {
+        document.body.classList.toggle('preview-mode', on);
+        const previewToggle = document.getElementById('preview-toggle');
+        if (previewToggle) {
+            previewToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+    }
+
+    function setPreviewMode(on) {
+        if (on === document.body.classList.contains('preview-mode')) {
+            return;
+        }
+        if (on) {
+            applyPreviewMode(true);
+            history.pushState({ resumePreview: true, profile: activeProfileKey }, '', window.location.href);
+            previewHistoryPushed = true;
+            return;
+        }
+        if (previewHistoryPushed) {
+            history.back();
+            return;
+        }
+        applyPreviewMode(false);
+    }
+
     function syncProfileSelect() {
         const profileSelect = document.getElementById('profile-select');
         if (profileSelect) {
@@ -79,11 +111,18 @@
 
     function syncThemeToggle(themeToggle) {
         const isDark = document.body.dataset.activeTheme === 'dark';
-        themeToggle.textContent = isDark ? 'Light' : 'Dark';
+        const label = themeToggle.querySelector('.toolbar-btn-label');
+        if (label) {
+            label.textContent = isDark ? 'Light' : 'Dark';
+        }
         themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+        themeToggle.setAttribute('aria-label', isDark ? 'Light' : 'Dark');
     }
 
     function applyTheme(theme) {
+        document.documentElement.classList.remove('theme-light', 'theme-dark');
+        document.documentElement.classList.add('theme-' + theme);
+        document.documentElement.dataset.activeTheme = theme;
         document.body.classList.remove('theme-light', 'theme-dark');
         document.body.classList.add('theme-' + theme);
         document.body.dataset.activeTheme = theme;
@@ -93,7 +132,10 @@
     function updateProfileQuery(profileKey) {
         const url = new URL(window.location.href);
         url.searchParams.set('profile', profileKey);
-        history.replaceState(null, '', url.toString());
+        history.replaceState({
+            resumePreview: document.body.classList.contains('preview-mode'),
+            profile: profileKey
+        }, '', url.toString());
     }
 
     function setActiveProfile(profileKey) {
