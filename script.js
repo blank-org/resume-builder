@@ -6,24 +6,37 @@
     const PROFILES = {
         current: { src: './data/data.json.js', label: 'Current' },
         grok: { src: './data/data.json_grok.js', label: 'Grok' },
-        'grok-full': { src: './data/data.json_grok_full.js', label: 'Grok full' }
+        'grok-full': { src: './data/data.json_grok_full.js', label: 'Grok full' },
+        elon: { src: './data/data.json_elon.js', label: 'Elon' },
+        'elon-full': { src: './data/data.json_elon_full.js', label: 'Elon full' },
     };
 
     const FALLBACK_SOURCES = ['./data/data.json.js', './data.json.js'];
     const STORAGE_PROFILE = 'resume.activeProfile';
     const STORAGE_APPEARANCE = 'resume.activeAppearance';
+    const STORAGE_UNDERLINE = 'resume.linkUnderline';
 
     let activeProfileKey = 'current';
     let previewHistoryPushed = false;
 
     document.addEventListener('DOMContentLoaded', function () {
         initChrome();
+        renderFooter();
         activeProfileKey = resolveInitialProfile();
         syncProfileSelect();
         loadProfile(activeProfileKey).then(function () {
             renderResume();
         });
     });
+
+    function renderFooter() {
+        const footer = document.getElementById('resume-footer');
+        if (!footer) {
+            return;
+        }
+        const year = new Date().getFullYear();
+        footer.innerHTML = 'Copyright \u00A9 ' + year + ' (<a href="https://resume-builder.local">Resume-Builder</a>)';
+    }
 
     function resolveInitialProfile() {
         const params = new URLSearchParams(window.location.search);
@@ -75,6 +88,14 @@
                 syncThemeToggle(themeToggle);
             });
         }
+
+        const underlineToggle = document.getElementById('underline-toggle');
+        applyLinkUnderline(localStorage.getItem(STORAGE_UNDERLINE) === 'true');
+        if (underlineToggle) {
+            underlineToggle.addEventListener('click', function () {
+                applyLinkUnderline(!document.body.classList.contains('links-underline'));
+            });
+        }
     }
 
     function applyPreviewMode(on) {
@@ -117,6 +138,16 @@
         }
         themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
         themeToggle.setAttribute('aria-label', isDark ? 'Light' : 'Dark');
+    }
+
+    function applyLinkUnderline(on) {
+        document.body.classList.toggle('links-underline', !!on);
+        document.documentElement.classList.toggle('links-underline', !!on);
+        const btn = document.getElementById('underline-toggle');
+        if (btn) {
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+        localStorage.setItem(STORAGE_UNDERLINE, on ? 'true' : 'false');
     }
 
     function applyTheme(theme) {
@@ -472,14 +503,15 @@
         }
 
         let html = '<div class="col-right avoid-break section-separator prior-art-item c' + (idx + 1) + '">';
-        html += '<div class="meta">';
+        html += '<div class="prior-art-head">';
         if (hasRenderableValue(date)) {
             html += '<span class="dates fr"><em>' + date + '</em></span>';
         }
-        html += '<span class="C1"><strong>' + titleHtml + '</strong></span>';
+        html += '<div class="prior-art-title"><strong>' + titleHtml + '</strong>';
         if (hasRenderableValue(organization)) {
-            html += '<span class="C2">&nbsp;</span><span class="title C3">' + organization + '</span>';
+            html += '<span class="prior-art-source">' + organization + '</span>';
         }
+        html += '</div>';
         html += '</div>';
         if (hasRenderableValue(description)) {
             html += '<div class="description"><p>' + description + '</p></div>';
