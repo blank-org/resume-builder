@@ -1,0 +1,5 @@
+resume-builder.local {
+    tls internal
+    header Cache-Control "no-store"
+    reverse_proxy [::1]:8000
+}

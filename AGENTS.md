@@ -67,6 +67,8 @@ General rendering rules:
 - The rendering logic lives in `script.js`; changes there affect how sections and rows are displayed.
 - Empty values should be skipped during rendering so missing fields do not show as blank rows.
 - A local preview can be served with Python's built-in HTTP server.
+- Local HTTPS hostname is `resume-builder.local` (Caddy, `tls internal`, reverse proxy to `[::1]:8000`). Copy the site block from `Caddyfile` into `ujLion/caddy`.
+- `https://resume-builder.local` is a **different origin** from `http://127.0.0.1:8000` (the Cursor side browser). Stylesheet cache and `localStorage` theme/profile keys do not carry across. After CSS changes, bump the `?v=` query on `style.css` / `script.js` in `index.html`, or hard-reload `.local`. Caddy sends `Cache-Control: no-store` for this site.
 
 ## Useful commands
 - Start a local preview:
@@ -75,6 +77,7 @@ General rendering rules:
   - `node --check script.js`
 - Open the preview in a browser at:
   - http://127.0.0.1:8000/
+  - https://resume-builder.local (after Caddy is loaded and the host resolves to localhost)
 
 ## Commit guidance
 - Keep commits atomic: each commit should represent one complete, focused change.
