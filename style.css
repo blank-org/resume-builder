@@ -667,6 +667,12 @@ body.links-underline .preview-page a:visited {
 	color: var(--muted-text);
 	text-align: center;
 }
+
+.resume-footer a,
+.resume-footer a:visited {
+	color: var(--paper-link);
+	text-decoration: none !important;
+}
 @media print {
 	.resume-toolbar,
 	.resume-footer {

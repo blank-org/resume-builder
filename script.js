@@ -35,7 +35,7 @@
             return;
         }
         const year = new Date().getFullYear();
-        footer.innerHTML = 'Copyright \u00A9 ' + year + ' (<a href="https://resume-builder.local">Resume-Builder</a>)';
+        footer.innerHTML = 'Copyright \u00A9 ' + year + ' <a href="https://resume-builder.local">Résumé builder</a>';
     }
 
     function resolveInitialProfile() {
