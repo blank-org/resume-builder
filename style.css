@@ -51,8 +51,10 @@ body.theme-dark {
 
 html
 {
+	height: 100%;
 	min-height: 100%;
 	background-color: var(--body-bg);
+	background-image: none;
 	color: var(--body-text);
 }
 
@@ -65,6 +67,7 @@ body
 	font-family: 'Lato', 'Roboto Slab', 'Merriweather', Arial, sans-serif;
 	color: var(--body-text);
 	background-color: var(--body-bg);
+	background-image: none;
 	min-height: 100vh;
 }
 
@@ -84,7 +87,7 @@ div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a
 
 html, body
 {
-	background-color: var(--body-bg);
+	background: var(--body-bg);
 	color: var(--body-text);
 }
 
@@ -309,6 +312,7 @@ body.preview-mode .resume-toolbar {
 		border: 1px solid var(--surface-border);
 		background: var(--surface-bg);
 		box-sizing: border-box;
+		overflow: hidden;
 	}
 	.page-content
 	{
