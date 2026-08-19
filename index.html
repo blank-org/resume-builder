@@ -2,14 +2,31 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title id="page-title">Résumé</title>
-    <!-- Google Fonts: Use 'Lato' for clean, professional look -->
     <link href="https://fonts.googleapis.com/css?family=Lato:400,700&display=swap" rel="stylesheet">
     <link href="./style.css" rel="stylesheet" type="text/css">
-    <script src="./data/data.json.js"></script>
     <script src="./script.js"></script>
 </head>
-<body>
+<body class="theme-light">
+<script>
+(function () {
+    var theme = localStorage.getItem('resume.activeAppearance');
+    if (theme === 'dark' || theme === 'light') {
+        document.body.className = 'theme-' + theme;
+        document.body.dataset.activeTheme = theme;
+    } else {
+        document.body.className = 'theme-light';
+        document.body.dataset.activeTheme = 'light';
+    }
+})();
+</script>
+<nav id="resume-toolbar" class="resume-toolbar" aria-label="Résumé controls">
+    <label class="toolbar-label" for="profile-select">Profile</label>
+    <select id="profile-select" aria-label="Profile"></select>
+    <button type="button" id="preview-toggle" aria-pressed="false">Preview</button>
+    <button type="button" id="theme-toggle" aria-pressed="false">Dark</button>
+</nav>
 <div class="preview-page">
     <div class="page-content">
         <div class="header">
