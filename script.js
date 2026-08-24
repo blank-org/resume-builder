@@ -557,7 +557,7 @@
                     '<div class="meta">' +
                     '<div class="exp-header">' +
                     '<span class="dates fr"><em>' + dates + '</em></span>' +
-                    '<strong><span class="C1">' + (item.role || '') + '</span></strong><span class="C2">&nbsp;</span><span class="title C3-A">' + company + '</span>' +
+                    '<span class="C1"><strong>' + (item.role || '') + '</strong></span><span class="C2">&nbsp;</span><span class="title C3-A">' + company + '</span>' +
                     '</div>' +
                     detailsHtml +
                     skillsHtml +
@@ -644,7 +644,7 @@
             '<div class="meta">' +
             '<div class="exp-header">' +
             '<span class="dates fr"><em>' + (exp.dates || '') + '</em></span>' +
-            '<strong><span class="C1">' + (exp.role || '') + '</span></strong><span class="C2">&nbsp;</span><span class="title C3-A">' + (exp.company || '') + '</span>' +
+            '<span class="C1"><strong>' + (exp.role || '') + '</strong></span><span class="C2">&nbsp;</span><span class="title C3-A">' + (exp.company || '') + '</span>' +
             '</div>' +
             '<div class="exp-details">' +
             '<span class="domain">Domain:<span class="domain-content"> ' + (exp.domain || '') + '</span></span>' +
