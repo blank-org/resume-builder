@@ -531,15 +531,46 @@ li { list-style: disc; margin-left: 2em; padding-left: 0.2em; margin-top: 0.6em;
 	border-top-width: 1px; border-top-style: solid; border-top-color: var(--paper-border); margin-top: 1em; padding-top: 1em;
 }
 
+/* Experience header: leftover width for company, date stays right (same idea as prior-art) */
 .exp-header {
 	margin-top: 0.4em;
-	display: block;
+	display: flex;
+	align-items: baseline;
+	flex-wrap: nowrap;
+	gap: 0 0.25rem;
+	overflow: visible;
 	clear: both;
-	overflow: hidden;
+}
+.exp-header .dates {
+	float: none;
+	order: 2;
+	margin-left: auto;
+	flex: 0 0 auto;
+	white-space: nowrap;
+}
+.exp-header .C1 {
+	float: none;
+	flex: 0 1 28%;
+	width: auto;
+	max-width: 28%;
+}
+.exp-header .C2 {
+	float: none;
+	width: auto;
+	flex: 0 0 auto;
+}
+.exp-header .C3-A {
+	float: none;
+	flex: 1 1 auto;
+	width: auto;
+	min-width: 0;
 }
 
 .exp-details {
 	margin-top: 0.4em;
+	display: flex;
+	align-items: baseline;
+	gap: 0.5rem 1rem;
 }
 
 .skills-used {
@@ -549,10 +580,12 @@ li { list-style: disc; margin-left: 2em; padding-left: 0.2em; margin-top: 0.6em;
 }
 
 .work-mode {
-	float: right;
+	float: none;
+	margin-left: auto;
+	flex: 0 0 auto;
 	font-style: italic;
 	color: var(--muted-text);
-	margin-right: 0.5em;
+	white-space: nowrap;
 }
 
 .domain {
