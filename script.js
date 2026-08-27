@@ -3,28 +3,26 @@
         'name', 'location', 'phone', 'email', 'summary', 'intro', 'now', 'section_order'
     ]);
 
-    const PROFILES = {
-        current: { src: './data/data.json.js', label: 'Current' },
-        grok: { src: './data/data.json_grok.js', label: 'Grok' },
-        'grok-full': { src: './data/data.json_grok_full.js', label: 'Grok full' },
-        elon: { src: './data/data.json_elon.js', label: 'Elon' },
-        'elon-full': { src: './data/data.json_elon_full.js', label: 'Elon full' },
-    };
-
+    const PROFILE_CATALOG_SOURCES = ['./data/profiles.js', './profiles.js'];
     const FALLBACK_SOURCES = ['./data/data.json.js', './data.json.js'];
     const STORAGE_PROFILE = 'resume.activeProfile';
     const STORAGE_APPEARANCE = 'resume.activeAppearance';
     const STORAGE_UNDERLINE = 'resume.linkUnderline';
 
+    let profiles = {};
+    let defaultProfileKey = 'current';
     let activeProfileKey = 'current';
     let previewHistoryPushed = false;
 
     document.addEventListener('DOMContentLoaded', function () {
         initChrome();
         renderFooter();
-        activeProfileKey = resolveInitialProfile();
-        syncProfileSelect();
-        loadProfile(activeProfileKey).then(function () {
+        loadProfileCatalog().then(function () {
+            fillProfileSelect();
+            activeProfileKey = resolveInitialProfile();
+            syncProfileSelect();
+            return loadProfile(activeProfileKey);
+        }).then(function () {
             renderResume();
         });
     });
@@ -41,25 +39,20 @@
     function resolveInitialProfile() {
         const params = new URLSearchParams(window.location.search);
         const fromQuery = params.get('profile');
-        if (fromQuery && PROFILES[fromQuery]) {
+        if (fromQuery && profiles[fromQuery]) {
             localStorage.setItem(STORAGE_PROFILE, fromQuery);
             return fromQuery;
         }
         const stored = localStorage.getItem(STORAGE_PROFILE);
-        if (stored && PROFILES[stored]) {
+        if (stored && profiles[stored]) {
             return stored;
         }
-        return 'current';
+        return defaultProfileKey;
     }
 
     function initChrome() {
         const profileSelect = document.getElementById('profile-select');
         if (profileSelect) {
-            profileSelect.innerHTML = Object.entries(PROFILES).map(function (entry) {
-                const key = entry[0];
-                const profile = entry[1];
-                return '<option value="' + key + '">' + profile.label + '</option>';
-            }).join('');
             profileSelect.addEventListener('change', function () {
                 setActiveProfile(profileSelect.value);
             });
@@ -169,8 +162,23 @@
         }, '', url.toString());
     }
 
+    function fillProfileSelect() {
+        const profileSelect = document.getElementById('profile-select');
+        if (!profileSelect) {
+            return;
+        }
+        profileSelect.innerHTML = Object.keys(profiles).map(function (key) {
+            const profile = profiles[key];
+            return '<option value="' + key + '">' + profile.label + '</option>';
+        }).join('');
+        const wrap = profileSelect.closest('.toolbar-profile');
+        if (wrap) {
+            wrap.hidden = Object.keys(profiles).length === 0;
+        }
+    }
+
     function setActiveProfile(profileKey) {
-        if (!PROFILES[profileKey]) {
+        if (!profiles[profileKey]) {
             return;
         }
         activeProfileKey = profileKey;
@@ -190,25 +198,118 @@
         delete window.resumeData;
     }
 
-    function injectScript(src) {
+    function injectScript(src, scriptId) {
         return new Promise(function (resolve, reject) {
+            if (scriptId) {
+                const existing = document.getElementById(scriptId);
+                if (existing) {
+                    existing.remove();
+                }
+            }
             const script = document.createElement('script');
-            script.id = 'resume-data-script';
+            if (scriptId) {
+                script.id = scriptId;
+            }
             script.src = src;
             script.onload = function () {
                 resolve();
             };
             script.onerror = function () {
+                script.remove();
                 reject(new Error('Failed to load ' + src));
             };
             document.head.appendChild(script);
         });
     }
 
+    function resolveProfileSrc(src) {
+        if (!src) {
+            return src;
+        }
+        if (/^(https?:)?\/\//.test(src) || src.charAt(0) === '/' || src.indexOf('./') === 0 || src.indexOf('../') === 0) {
+            return src;
+        }
+        return './data/' + src;
+    }
+
+    function parseProfileCatalog(raw) {
+        const map = {};
+        let defaultKey = null;
+        let list = [];
+
+        if (Array.isArray(raw)) {
+            list = raw;
+        } else if (raw && typeof raw === 'object') {
+            defaultKey = raw.default || raw.defaultProfile || null;
+            const source = raw.profiles || raw;
+            if (Array.isArray(source)) {
+                list = source;
+            } else if (source && typeof source === 'object') {
+                Object.keys(source).forEach(function (id) {
+                    if (id === 'default' || id === 'defaultProfile' || id === 'profiles') {
+                        return;
+                    }
+                    const item = source[id];
+                    if (item && typeof item === 'object') {
+                        list.push({
+                            id: item.id || id,
+                            src: item.src,
+                            label: item.label
+                        });
+                    }
+                });
+            }
+        }
+
+        list.forEach(function (item) {
+            if (!item || !item.id || !item.src) {
+                return;
+            }
+            map[item.id] = {
+                src: resolveProfileSrc(item.src),
+                label: item.label || item.id
+            };
+        });
+
+        if (!defaultKey || !map[defaultKey]) {
+            defaultKey = Object.keys(map)[0] || 'current';
+        }
+        return { map: map, defaultKey: defaultKey };
+    }
+
+    function applySyntheticCatalog() {
+        profiles = {
+            current: { src: FALLBACK_SOURCES[0], label: 'Current' }
+        };
+        defaultProfileKey = 'current';
+    }
+
+    function loadProfileCatalog() {
+        let chain = Promise.reject();
+        PROFILE_CATALOG_SOURCES.forEach(function (src) {
+            chain = chain.catch(function () {
+                return injectScript(src, 'resume-profiles-script').then(function () {
+                    const parsed = parseProfileCatalog(window.resumeProfiles);
+                    if (!Object.keys(parsed.map).length) {
+                        throw new Error('empty profile catalog after ' + src);
+                    }
+                    profiles = parsed.map;
+                    defaultProfileKey = parsed.defaultKey;
+                });
+            });
+        });
+        return chain.catch(function () {
+            applySyntheticCatalog();
+        });
+    }
+
     function loadProfile(profileKey) {
-        const profile = PROFILES[profileKey] || PROFILES.current;
+        const profile = profiles[profileKey] || profiles[defaultProfileKey];
+        if (!profile) {
+            return loadFallbackSources();
+        }
         removeResumeDataScript();
-        return injectScript(profile.src).then(function () {
+        return injectScript(profile.src, 'resume-data-script').then(function () {
             if (typeof window.resumeData === 'undefined') {
                 return loadFallbackSources();
             }
@@ -222,7 +323,7 @@
         let chain = Promise.reject();
         FALLBACK_SOURCES.forEach(function (src) {
             chain = chain.catch(function () {
-                return injectScript(src).then(function () {
+                return injectScript(src, 'resume-data-script').then(function () {
                     if (typeof window.resumeData === 'undefined') {
                         throw new Error('resumeData missing after ' + src);
                     }

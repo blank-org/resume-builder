@@ -1,0 +1,7 @@
+window.resumeProfiles = {
+  default: "current",
+  profiles: {
+    current: { src: "data.json.js", label: "Current" },
+    alt: { src: "data.json_alt.js", label: "Alt" }
+  }
+};
