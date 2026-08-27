@@ -697,17 +697,8 @@
                     '</div>';
             }
 
-            if (item.title && (item.link || item.url)) {
-                const link = item.link || item.url;
-                const linkText = item.link_text || item.caption || link;
-                return '<div class="col-right avoid-break section-separator portfolio-item">' +
-                    '<div class="meta">' +
-                    (item.date ? '<span class="dates fr"><em>' + item.date + '</em></span>' : '') +
-                    '<span class="C1"><strong>' + (item.title || '') + '</strong></span><span class="C2">&nbsp;</span><span class="title C3 portfolio-link">' +
-                    (link ? '<a href="' + link + '" target="_blank" rel="noopener noreferrer">' + linkText + '</a>' : '') +
-                    '</span>' +
-                    '</div>' +
-                    '</div>';
+            if (item.title && (item.link || item.url || hasPortfolioLinks(item))) {
+                return renderPortfolioItem(item);
             }
 
             if (key.toLowerCase().includes('persona') || (item.label && item.value)) {
@@ -722,6 +713,41 @@
             }
         }
         return '<div class="col-right avoid-break section-separator"><pre>' + JSON.stringify(item, null, 2) + '</pre></div>';
+    }
+
+    function hasPortfolioLinks(item) {
+        const links = item && (item.links || item.items);
+        return Array.isArray(links) && links.some(function (linkItem) {
+            return linkItem && hasRenderableValue(linkItem.url || linkItem.link);
+        });
+    }
+
+    function portfolioAnchorHtml(item) {
+        const link = item.link || item.url;
+        if (!hasRenderableValue(link)) {
+            return '';
+        }
+        const linkText = item.link_text || item.caption || link;
+        return '<a href="' + link + '" target="_blank" rel="noopener noreferrer">' + linkText + '</a>';
+    }
+
+    function renderPortfolioItem(item) {
+        const grouped = Array.isArray(item.links) ? item.links : (Array.isArray(item.items) ? item.items : null);
+        let linksHtml = '';
+        if (grouped && grouped.length > 0) {
+            linksHtml = grouped.map(portfolioAnchorHtml).filter(Boolean).join('');
+        } else {
+            linksHtml = portfolioAnchorHtml(item);
+        }
+        const isGroup = grouped && grouped.length > 1;
+        return '<div class="col-right avoid-break section-separator portfolio-item' + (isGroup ? ' portfolio-group' : '') + '">' +
+            '<div class="meta">' +
+            (item.date ? '<span class="dates fr"><em>' + item.date + '</em></span>' : '') +
+            '<span class="C1"><strong>' + (item.title || '') + '</strong></span><span class="C2">&nbsp;</span><span class="title C3 portfolio-link">' +
+            linksHtml +
+            '</span>' +
+            '</div>' +
+            '</div>';
     }
 
     function renderSkills(skills) {

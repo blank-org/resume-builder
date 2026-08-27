@@ -44,6 +44,15 @@ window.resumeData = {
       "title": "(Portfolio Item Title)",
       "url": "(URL)",
       "caption": "(Display Caption)"
+    },
+    {
+      "title": "(Group Title)",
+      "links": [
+        {
+          "url": "(URL)",
+          "caption": "(Display Caption)"
+        }
+      ]
     }
   ],
   "education": [

@@ -278,6 +278,12 @@ body.preview-mode .resume-footer {
 	content: "-";
 	padding-right: 0.35em;
 }
+.portfolio-group .portfolio-link a {
+	display: block;
+}
+.portfolio-group .portfolio-link a + a {
+	margin-top: 0.35em;
+}
 .col-right .skills-list,
 .col-right .skills-list li,
 .skills-list-item {
@@ -329,7 +335,7 @@ body.preview-mode .resume-footer {
 		margin: 1em auto 1.5em auto;
 		width: 100%;
 		padding: 10px 0;
-		overflow: hidden;
+		overflow: visible;
 		font-size: 100%;
 		position: relative;
 		box-sizing: border-box;
@@ -362,7 +368,7 @@ body.preview-mode .resume-footer {
 		margin: 1em auto 1.5em auto;
 		width: 100%;
 		padding: 10px 0;
-		overflow: hidden;
+		overflow: visible;
 		font-size: 100%;
 		position: relative;
 		box-sizing: border-box;
@@ -372,7 +378,12 @@ body.preview-mode .resume-footer {
 .header {
 	padding-bottom: 0;
 	border: none;
-	overflow: hidden;
+	overflow: visible;
+}
+.header::after {
+	content: "";
+	display: table;
+	clear: both;
 }
 .name {
 	text-align: left;
@@ -426,6 +437,7 @@ body.preview-mode .resume-footer {
 
 #dynamic-sections {
 	--label-col: 10rem;
+	overflow: visible;
 }
 .col-full {
 	display: flex;
@@ -506,13 +518,21 @@ td {
 
 .preview-page > .page-content
 {
-	overflow: hidden;
+	overflow: visible;
 }
 .preview-page > .page-content
 {
 	margin: 0;
 }
-.meta {overflow: hidden};
+.meta {
+	overflow: visible;
+	padding-right: 0.2em;
+}
+.meta::after {
+	content: "";
+	display: table;
+	clear: both;
+}
 .meta + .description { margin-top: 0.5em; }
 .description p { margin-top: 0.3em; }
 .description-edu p {margin-top: 0.5em; margin-left: 20px;}
@@ -586,6 +606,10 @@ li { list-style: disc; margin-left: 2em; padding-left: 0.2em; margin-top: 0.6em;
 	font-style: italic;
 	color: var(--muted-text);
 	white-space: nowrap;
+	padding-right: 0.2em;
+}
+.dates em {
+	padding-right: 0.2em;
 }
 
 .domain {
@@ -687,7 +711,7 @@ body.links-underline .preview-page a:visited {
 }
 
 #dynamic-sections {
-	overflow: hidden;
+	overflow: visible;
 }
 .resume-footer {
 	width: 980px;
