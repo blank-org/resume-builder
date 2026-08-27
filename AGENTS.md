@@ -11,14 +11,12 @@ index.html                 # toolbar + paper chrome (name, intro, summary, #dyna
 style.css                  # CSS variables, screen + @media print (980px page)
 script.js                  # profile/theme/preview chrome + all rendering
 Caddyfile                  # resume-builder.local → [::1]:8000
-data.json.js.example       # schema template (on origin/main)
+data.json.js.example       # résumé schema template (on origin/main)
+profiles.js.example        # profile catalog schema (copy into the data repo)
 data/                      # git submodule: personal résumé data (separate repo)
+  profiles.js              # switcher catalog (`window.resumeProfiles`)
   data.json.js             # Current profile (live consulting résumé)
-  data.json_grok.js        # Grok one-pager (founder)
-  data.json_grok_full.js   # Grok full (founder + selected engineering)
-  data.json_elon.js        # Elon one-pager
-  data.json_elon_full.js   # Elon full
-  data.json_pratham.js     # extra résumé file (not in the profile switcher)
+  data.json_*.js           # other named profiles listed in profiles.js
   README.md
   .gitignore               # ignores archive/
 .gitmodules.template       # sample submodule URL (on origin/main)
@@ -50,7 +48,7 @@ Serve the **repo root** so `./data/*.js` resolves.
 - Prefer http:// over `file://` (Google Fonts + relative script loads)
 - Local HTTPS: `resume-builder.local` (Caddy, `tls internal`, reverse proxy to `[::1]:8000`). Copy the site block from `Caddyfile` into `ujLion/caddy` (`caddyfile`) so it loads with the rest of the `.local` sites.
 
-Shareable profile URL: http://127.0.0.1:8000/?profile=grok (`current` | `grok` | `grok-full` | `elon` | `elon-full`).
+Shareable profile URL: http://127.0.0.1:8000/?profile=<id> where `<id>` is a key from `data/profiles.js`.
 
 PDF: browser Print → Save as PDF. There is no export script. Print CSS forces the light palette and **hides the toolbar and footer**.
 
@@ -65,17 +63,23 @@ Sits above `.preview-page`. Native `<select>` / `<button>` only (no custom selec
 | Dark mode | `#theme-toggle` | `localStorage['resume.activeAppearance']` = `light` \| `dark`. Sets `html` and `body` to `theme-light` / `theme-dark` plus `data-active-theme`. `aria-pressed` is true when dark. An inline script in `<head>` applies the saved theme on `document.documentElement` before CSS to avoid a flash. **No** `prefers-color-scheme` auto-switch. |
 | Underline links | `#underline-toggle` | `localStorage['resume.linkUnderline']` = `true` \| `false`. Toggles `links-underline` on `html` and `body`. |
 
-Profile files:
+The toolbar `#profile-select` is filled from a catalog, not from a list in `script.js`. Load order: `./data/profiles.js`, then `./profiles.js`. If both are missing or empty, the switcher falls back to a single Current profile at `./data/data.json.js`.
 
-| id | src | label |
-|----|-----|-------|
-| `current` | `./data/data.json.js` | Current |
-| `grok` | `./data/data.json_grok.js` | Grok |
-| `grok-full` | `./data/data.json_grok_full.js` | Grok full |
-| `elon` | `./data/data.json_elon.js` | Elon |
-| `elon-full` | `./data/data.json_elon_full.js` | Elon full |
+Catalog file (`window.resumeProfiles`):
 
-Do **not** add a static `<script src="./data/data.json.js">` in `index.html` — that would double-define `window.resumeData` against the loader. The loader injects/replaces `#resume-data-script`. If `window.resumeData` is still missing, it tries `./data/data.json.js`, then root `./data.json.js`.
+```js
+window.resumeProfiles = {
+  default: "current",
+  profiles: {
+    current: { src: "data.json.js", label: "Current" },
+    alt: { src: "data.json_alt.js", label: "Alt" }
+  }
+};
+```
+
+`profiles` may be an object (key = id) or an array of `{ id, src, label }`. A top-level array of those objects also works. `src` is a filename under `data/` unless it is already a path (`./…`, `/…`, or `http(s):`). Copy `profiles.js.example` into the data repo as `data/profiles.js`. Adding a résumé file does not put it in the switcher until it is listed there.
+
+Do **not** add a static `<script src="./data/data.json.js">` in `index.html` — that would double-define `window.resumeData` against the loader. The loader injects/replaces `#resume-profiles-script` then `#resume-data-script`. If `window.resumeData` is still missing, it tries `./data/data.json.js`, then root `./data.json.js`.
 
 Do not overwrite `data/data.json.js` (live consulting résumé; may have local edits). Leave it as the Current profile. Grok files must not include Avyaan / avyaan.tech jobs or the avyaan.tech email.
 
@@ -97,11 +101,8 @@ There is no test, lint, or typecheck suite.
 
 ```
 node --check script.js
+node --check data/profiles.js
 node --check data/data.json.js
-node --check data/data.json_grok.js
-node --check data/data.json_grok_full.js
-node --check data/data.json_elon.js
-node --check data/data.json_elon_full.js
 ```
 
 ## Data model
@@ -157,14 +158,15 @@ Schema for a new résumé: copy `data.json.js.example`.
 | Task | File |
 |------|------|
 | Update Current résumé | `data/data.json.js` (commit in the **data** repo) |
-| Update Grok / Elon variants | matching files in the data repo |
+| Add/rename/hide profiles in the switcher | `data/profiles.js` (data repo); copy from `profiles.js.example` |
 | Switch profile in the UI | toolbar, `?profile=`, or `localStorage['resume.activeProfile']` |
+| Update a named variant | matching `data.json_*.js` in the data repo |
 | Reorder sections | `section_order` in the data file (else reorder top-level keys) |
 | Add a section that matches an existing shape | add the key; generic renderer handles experience / education / recognition / portfolio / products / prior_art / persona-like objects |
 | Add a new section shape | `renderSection` / `renderGenericItem` in `script.js` |
 | Layout, colors, print, dark mode | `style.css` |
 | Header / summary / now chip / toolbar / footer | `index.html` plus chrome/render code in `script.js` |
-| Example schema for others | `data.json.js.example` |
+| Example schema for others | `data.json.js.example`, `profiles.js.example` |
 
 ## Renderer pitfalls
 
@@ -183,7 +185,7 @@ copy .gitmodules.template .gitmodules
 git submodule add git@github.com-p:USER/resume.git data
 ```
 
-`data/data.json.js` remains the Current profile. Grok/Elon files live beside it in the data repo.
+`data/data.json.js` remains the Current profile. Other variants live beside it and are listed in `data/profiles.js`.
 
 ## Deploy
 
@@ -197,5 +199,5 @@ None. Static files; any static host works. Google Fonts needs network. No env va
 - Do not mix builder + data changes into one repo.
 - Message describes the outcome.
 - Builder repo: renderer/CSS/chrome/example only.
-- Data repo: personal `data.json.js` and profile variants.
+- Data repo: personal `data.json.js`, profile variants, and `profiles.js`.
 - Do not commit `.gitmodules` (gitignored on origin) or private résumé content into `blank-org/resume-builder`.
