@@ -157,6 +157,11 @@ body {
 	gap: 0.15rem;
 	margin-left: auto;
 }
+.toolbar-profile-group {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.55rem;
+}
 .toolbar-profile {
 	display: inline-flex;
 	align-items: center;
@@ -415,13 +420,50 @@ body.preview-mode .resume-footer {
 	padding-top: 0;
 }
 .statement blockquote {
-	margin: 0.5em auto 0.5em auto;
-	width: 80%;
-	font-family: 'Merriweather', 'Lato', 'Roboto Slab', Georgia, "Times New Roman", Times, serif;
-	text-align: justify;
+	margin: 0.5em 0;
+	width: 100%;
+	max-width: none;
+	font-family: 'Lato', 'Roboto Slab', 'Merriweather', Arial, sans-serif;
+	font-size: 1em;
+	line-height: 1.45;
+	text-align: left;
+	color: var(--paper-quote);
 }
 .statement blockquote p + p {
 	margin-top: 1em;
+}
+#summary,
+.summary-list,
+.summary-item {
+	font-size: 1em;
+	line-height: 1.45;
+	color: var(--paper-quote);
+}
+.summary-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	font-family: 'Lato', 'Roboto Slab', 'Merriweather', Arial, sans-serif;
+	text-align: left;
+}
+.summary-list li {
+	list-style: none;
+	list-style-position: outside;
+	margin: 0.45em 0 0;
+	margin-left: 0;
+	padding-left: 0;
+	clear: none;
+	font-size: 1em;
+	font-family: inherit;
+	text-align: left;
+}
+.summary-list li::before {
+	content: "-";
+	padding-right: 0.35em;
+}
+.summary-item {
+	margin: 0;
 }
 
 .skills-list {

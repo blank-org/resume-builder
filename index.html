@@ -25,12 +25,17 @@
 })();
 </script>
 <nav id="resume-toolbar" class="resume-toolbar" aria-label="Résumé controls">
-    <label class="toolbar-profile" for="profile-select">
-        <svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5z"/>
-        </svg>
-        <select id="profile-select" aria-label="Profile"></select>
-    </label>
+    <div class="toolbar-profile-group">
+        <label class="toolbar-profile" for="person-select">
+            <svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5z"/>
+            </svg>
+            <select id="person-select" aria-label="Person"></select>
+        </label>
+        <label class="toolbar-profile toolbar-variant" for="profile-select">
+            <select id="profile-select" aria-label="Version"></select>
+        </label>
+    </div>
     <div class="toolbar-actions">
     <button type="button" id="preview-toggle" class="toolbar-btn toolbar-icon-only" aria-pressed="false" aria-label="Preview">
         <svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -62,7 +67,7 @@
         </div>
         <div class="statement">
             <blockquote>
-                <p id="summary"></p>
+                <div id="summary"></div>
             </blockquote>
         </div>
         <div id="dynamic-sections"></div>

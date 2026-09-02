@@ -10,7 +10,10 @@
     const STORAGE_UNDERLINE = 'resume.linkUnderline';
 
     let profiles = {};
+    let people = {};
+    let personOrder = [];
     let defaultProfileKey = 'current';
+    let activePersonKey = null;
     let activeProfileKey = 'current';
     let previewHistoryPushed = false;
 
@@ -18,8 +21,14 @@
         initChrome();
         renderFooter();
         loadProfileCatalog().then(function () {
-            fillProfileSelect();
             activeProfileKey = resolveInitialProfile();
+            if (profiles[activeProfileKey] && profiles[activeProfileKey].personId) {
+                activePersonKey = profiles[activeProfileKey].personId;
+            } else if (!activePersonKey) {
+                activePersonKey = personKeys()[0] || null;
+            }
+            fillPersonSelect();
+            fillProfileSelect();
             syncProfileSelect();
             return loadProfile(activeProfileKey);
         }).then(function () {
@@ -51,6 +60,13 @@
     }
 
     function initChrome() {
+        const personSelect = document.getElementById('person-select');
+        if (personSelect) {
+            personSelect.addEventListener('change', function () {
+                setActivePerson(personSelect.value);
+            });
+        }
+
         const profileSelect = document.getElementById('profile-select');
         if (profileSelect) {
             profileSelect.addEventListener('change', function () {
@@ -117,6 +133,10 @@
     }
 
     function syncProfileSelect() {
+        const personSelect = document.getElementById('person-select');
+        if (personSelect && activePersonKey) {
+            personSelect.value = activePersonKey;
+        }
         const profileSelect = document.getElementById('profile-select');
         if (profileSelect) {
             profileSelect.value = activeProfileKey;
@@ -162,18 +182,67 @@
         }, '', url.toString());
     }
 
+    function personKeys() {
+        return personOrder.length ? personOrder.slice() : Object.keys(people);
+    }
+
+    function fillPersonSelect() {
+        const personSelect = document.getElementById('person-select');
+        if (!personSelect) {
+            return;
+        }
+        const keys = personKeys();
+        personSelect.innerHTML = keys.map(function (key) {
+            const person = people[key];
+            return '<option value="' + key + '">' + (person.label || key) + '</option>';
+        }).join('');
+        const wrap = personSelect.closest('.toolbar-profile-group') || personSelect.closest('.toolbar-profile');
+        if (wrap) {
+            wrap.hidden = keys.length === 0;
+        }
+        personSelect.hidden = keys.length <= 1;
+    }
+
     function fillProfileSelect() {
         const profileSelect = document.getElementById('profile-select');
         if (!profileSelect) {
             return;
         }
-        profileSelect.innerHTML = Object.keys(profiles).map(function (key) {
+        const person = people[activePersonKey];
+        const versionKeys = person && Array.isArray(person.profileIds) ? person.profileIds : Object.keys(profiles);
+        profileSelect.innerHTML = versionKeys.map(function (key) {
             const profile = profiles[key];
+            if (!profile) {
+                return '';
+            }
             return '<option value="' + key + '">' + profile.label + '</option>';
         }).join('');
-        const wrap = profileSelect.closest('.toolbar-profile');
+        const wrap = profileSelect.closest('.toolbar-variant') || profileSelect.closest('.toolbar-profile');
         if (wrap) {
-            wrap.hidden = Object.keys(profiles).length === 0;
+            wrap.hidden = versionKeys.length === 0;
+        }
+        profileSelect.disabled = versionKeys.length === 0;
+    }
+
+    function setActivePerson(personKey, preferredProfileKey) {
+        if (!people[personKey]) {
+            return;
+        }
+        activePersonKey = personKey;
+        const person = people[personKey];
+        const versionKeys = person.profileIds || [];
+        let nextProfile = preferredProfileKey;
+        if (!nextProfile || versionKeys.indexOf(nextProfile) === -1) {
+            nextProfile = person.defaultProfile;
+        }
+        if (!nextProfile || versionKeys.indexOf(nextProfile) === -1) {
+            nextProfile = versionKeys[0];
+        }
+        fillProfileSelect();
+        if (nextProfile) {
+            setActiveProfile(nextProfile);
+        } else {
+            syncProfileSelect();
         }
     }
 
@@ -181,9 +250,14 @@
         if (!profiles[profileKey]) {
             return;
         }
+        const profile = profiles[profileKey];
+        if (profile.personId) {
+            activePersonKey = profile.personId;
+        }
         activeProfileKey = profileKey;
         localStorage.setItem(STORAGE_PROFILE, profileKey);
         updateProfileQuery(profileKey);
+        fillProfileSelect();
         syncProfileSelect();
         loadProfile(profileKey).then(function () {
             renderResume();
@@ -234,54 +308,138 @@
 
     function parseProfileCatalog(raw) {
         const map = {};
+        const peopleMap = {};
+        const personOrder = [];
         let defaultKey = null;
-        let list = [];
+        let defaultPersonKey = null;
 
-        if (Array.isArray(raw)) {
-            list = raw;
-        } else if (raw && typeof raw === 'object') {
-            defaultKey = raw.default || raw.defaultProfile || null;
-            const source = raw.profiles || raw;
-            if (Array.isArray(source)) {
-                list = source;
-            } else if (source && typeof source === 'object') {
-                Object.keys(source).forEach(function (id) {
-                    if (id === 'default' || id === 'defaultProfile' || id === 'profiles') {
-                        return;
-                    }
-                    const item = source[id];
-                    if (item && typeof item === 'object') {
-                        list.push({
-                            id: item.id || id,
-                            src: item.src,
-                            label: item.label
-                        });
-                    }
-                });
-            }
-        }
-
-        list.forEach(function (item) {
-            if (!item || !item.id || !item.src) {
+        function addProfile(id, item, personId) {
+            if (!id || !item || !item.src) {
                 return;
             }
-            map[item.id] = {
+            map[id] = {
                 src: resolveProfileSrc(item.src),
-                label: item.label || item.id
+                label: item.label || id,
+                personId: personId || null
             };
-        });
+        }
+
+        if (raw && typeof raw === 'object' && raw.people && typeof raw.people === 'object') {
+            defaultKey = raw.default || raw.defaultProfile || null;
+            Object.keys(raw.people).forEach(function (personId) {
+                const person = raw.people[personId];
+                if (!person || typeof person !== 'object') {
+                    return;
+                }
+                const profileIds = [];
+                const source = person.profiles || {};
+                Object.keys(source).forEach(function (profileId) {
+                    const item = source[profileId];
+                    if (!item || typeof item !== 'object') {
+                        return;
+                    }
+                    const id = item.id || profileId;
+                    addProfile(id, item, personId);
+                    profileIds.push(id);
+                });
+                if (!profileIds.length) {
+                    return;
+                }
+                let personDefault = person.default || person.defaultProfile || profileIds[0];
+                if (profileIds.indexOf(personDefault) === -1) {
+                    personDefault = profileIds[0];
+                }
+                peopleMap[personId] = {
+                    label: person.label || personId,
+                    defaultProfile: personDefault,
+                    profileIds: profileIds
+                };
+                personOrder.push(personId);
+            });
+            if (defaultKey && map[defaultKey] && map[defaultKey].personId) {
+                defaultPersonKey = map[defaultKey].personId;
+            }
+            if (!defaultPersonKey) {
+                defaultPersonKey = personOrder[0] || null;
+            }
+            if ((!defaultKey || !map[defaultKey]) && defaultPersonKey && peopleMap[defaultPersonKey]) {
+                defaultKey = peopleMap[defaultPersonKey].defaultProfile;
+            }
+        } else {
+            let list = [];
+            if (Array.isArray(raw)) {
+                list = raw;
+            } else if (raw && typeof raw === 'object') {
+                defaultKey = raw.default || raw.defaultProfile || null;
+                const source = raw.profiles || raw;
+                if (Array.isArray(source)) {
+                    list = source;
+                } else if (source && typeof source === 'object') {
+                    Object.keys(source).forEach(function (id) {
+                        if (id === 'default' || id === 'defaultProfile' || id === 'profiles' || id === 'people') {
+                            return;
+                        }
+                        const item = source[id];
+                        if (item && typeof item === 'object') {
+                            list.push({
+                                id: item.id || id,
+                                src: item.src,
+                                label: item.label
+                            });
+                        }
+                    });
+                }
+            }
+
+            list.forEach(function (item) {
+                if (!item || !item.id || !item.src) {
+                    return;
+                }
+                addProfile(item.id, item, 'default');
+            });
+
+            const flatIds = Object.keys(map);
+            if (flatIds.length) {
+                peopleMap.default = {
+                    label: 'Default',
+                    defaultProfile: (defaultKey && map[defaultKey]) ? defaultKey : flatIds[0],
+                    profileIds: flatIds
+                };
+                personOrder.push('default');
+                defaultPersonKey = 'default';
+            }
+        }
 
         if (!defaultKey || !map[defaultKey]) {
             defaultKey = Object.keys(map)[0] || 'current';
         }
-        return { map: map, defaultKey: defaultKey };
+        if (!defaultPersonKey && map[defaultKey]) {
+            defaultPersonKey = map[defaultKey].personId || personOrder[0] || null;
+        }
+
+        return {
+            map: map,
+            people: peopleMap,
+            personOrder: personOrder,
+            defaultKey: defaultKey,
+            defaultPersonKey: defaultPersonKey
+        };
     }
 
     function applySyntheticCatalog() {
         profiles = {
-            current: { src: FALLBACK_SOURCES[0], label: 'Current' }
+            current: { src: FALLBACK_SOURCES[0], label: 'Current', personId: 'default' }
         };
+        people = {
+            default: {
+                label: 'Default',
+                defaultProfile: 'current',
+                profileIds: ['current']
+            }
+        };
+        personOrder = ['default'];
         defaultProfileKey = 'current';
+        activePersonKey = 'default';
     }
 
     function loadProfileCatalog() {
@@ -294,7 +452,12 @@
                         throw new Error('empty profile catalog after ' + src);
                     }
                     profiles = parsed.map;
+                    people = parsed.people || {};
+                    personOrder = parsed.personOrder || Object.keys(people);
                     defaultProfileKey = parsed.defaultKey;
+                    if (parsed.defaultPersonKey) {
+                        activePersonKey = parsed.defaultPersonKey;
+                    }
                 });
             });
         });
